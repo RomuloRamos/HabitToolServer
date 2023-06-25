@@ -1,0 +1,13 @@
+- Install Node;
+- npm init -y;
+- Install typeScript -D;
+- Install tsx -D;
+- Install fastify; (semelhante ao express, para criação de rotas)
+- npm tsc --init;
+- install Prisma;
+- install client do prisma;
+- setup database type no prisma;
+- configurar CORS
+- Instalar ferramenta ERD, para gerar o diagrama do DB: npm i -D prisma-erd-generator @mermaid-js/mermaid-cli
+- Configurar Seed do Prisma para popular o banco para teste
+- Instalado a biblioteca de validação de campos zod
