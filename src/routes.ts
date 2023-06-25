@@ -17,7 +17,7 @@ export async function appRoutes(app: FastifyInstance)
         const {title, weekDays} = createHabitBody.parse(request.body);
 
         const today = new Date();
-
+        today.setUTCHours(0,0,0,0);
         await prisma.habit.create({
             data: {
                 title,
@@ -38,15 +38,14 @@ export async function appRoutes(app: FastifyInstance)
         const getDayParams = z.object({
             date: z.coerce.date()
         });
-        
         const {date} = getDayParams.parse(request.query);
         const parsedDate =  new Date(date);
-        parsedDate.setUTCHours(0,0,0,0);
-        console.log("date: ",date);
+        parsedDate.setUTCHours(23,59,59,999);
+        date.setUTCHours(0,0,0,0);
+        // console.log("date: ",date);
         const weekDay = date.getUTCDay();
-        console.log("weekDay", weekDay);
-        //Todos os habitos possíveis
-        //Habitos que foram completados
+        // console.log("weekDay", weekDay);
+        //All possible habit were completed
         const possibleHabits = await prisma.habit.findMany({
             where:{
                 create_at: {
@@ -68,10 +67,10 @@ export async function appRoutes(app: FastifyInstance)
                 dayHabits:true
             }
         })
-
+        // console.log("day: ",day)
         const completedHabits = day?.dayHabits.map(dayHabit =>{
             return dayHabit.habit_id
-        })
+        }) ?? [] //Return a empty array case day value is undefined
 
         return {
             possibleHabits, 
@@ -79,27 +78,28 @@ export async function appRoutes(app: FastifyInstance)
         }
     })
     
-    app.patch('/habits/:id/toggle', async (request)=>{
+    app.patch('/habits/:date/:id/toggle', async (request,response)=>{
 
         const toggleHabitParams = z.object({
+            date: z.coerce.date(),
             id: z.string().uuid(),
         });
         
-        const {id} = toggleHabitParams.parse(request.params);
+        const {id, date} = toggleHabitParams.parse(request.params);
 
-        const today =  new Date();
-        today.setUTCHours(0,0,0,0);
+
+        date.setUTCHours(0,0,0,0);
 
         let day = await prisma.day.findUnique({
             where: {
-                date: today
+                date: date
             }
         });
 
         if(!day){
             day = await prisma.day.create({
                 data:{
-                    date: today
+                    date: date
                 }
             })
         }
@@ -130,6 +130,8 @@ export async function appRoutes(app: FastifyInstance)
                     habit_id: id
                 }
             });
+        
+            return {toggle: dayHabit? 0:1};
     })
 
     app.get('/summary', async()=>{
